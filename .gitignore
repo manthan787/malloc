@@ -1,2 +1,5 @@
 *.o
 *.so
+malloc
+test1
+a.out
