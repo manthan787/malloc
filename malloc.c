@@ -79,6 +79,7 @@ void *my_malloc(size_t size) {
   // If there are no blocks available, break the existing blocks
   if(order == MAX_INDEX) {
     printf("Probably need to call sbrk now!\n");
+    // FIXME: Abort or extend data segment using `sbrk`
   }
 }
 
