@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv)
 {
-  size_t size = 12;
+  size_t size = 400;
   void *mem = malloc(size);
   printf("Successfully malloc'd %zu bytes at addr %p\n", size, mem);
   assert(mem != NULL);
