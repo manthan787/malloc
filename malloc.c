@@ -28,7 +28,7 @@ void init_heap() {
   // Increment the data segment size by page size
   if ((heap = sbrk(sysconf(_SC_PAGESIZE))) == (void *)-1) ERROR("sbrk");
   printf("block starts at %p address\n", heap);
-  blocks[MAX_INDEX] = new_block(heap);
+  blocks[MAX_INDEX] = new_block(heap, MAX_INDEX);
 }
 
 void *my_malloc(size_t size) {
