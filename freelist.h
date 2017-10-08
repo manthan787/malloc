@@ -6,6 +6,7 @@
 
 // For MAX_INDEX
 #include "config.h"
+
 /**
  * Allowed memory blocks in this buddy allocation implementation
  * The biggest memory block allowed is 4096 bytes and the smallest
