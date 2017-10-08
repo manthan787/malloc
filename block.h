@@ -11,6 +11,7 @@ typedef struct block_t {
   struct block_t *next;      // Next block
   struct block_t *previous;  // Previous Block
   BlockStatus status;        // If the block is occupied or free
+  short level;
 } Block;
 
 /**
@@ -24,8 +25,9 @@ typedef struct block_t {
  * `next`: NULL
  * `previous`: NULL
  * `status`: FREE
+ * `level`: Provided level
  */
-Block *new_block(void *);
+Block *new_block(void *, int);
 
 /**
  * Marks the given block as allocated
@@ -35,6 +37,6 @@ Block *mark_block(Block *, size_t);
 /**
  * Print a block in human-readable format
  */
-void print_block(Block *, int);
+void print_block(Block *);
 
 #endif
