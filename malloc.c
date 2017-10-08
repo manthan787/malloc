@@ -50,38 +50,36 @@ void *my_malloc(size_t size) {
   int order = find_order(totalSize);
   printf("Order: %d\n", order);
 
-  if(blocks[order] == NULL) {
-    printf("No Blocks for the given order\n");
-    int split = MAX_INDEX;
-    while(blocks[order] == NULL) {
-      if(blocks[split] == NULL) {
-        split --;
-        continue;
-      }
-      // Split here
-      printf("Gonna split %d\n", split);
-      int newsplit = split - 1;
-      if(blocks[newsplit] == NULL) {
-        printf("splitting %p into two\n", blocks[split]->startAddr);
-        Block *block1 = new_block(blocks[split]->startAddr);
-        // printf("second block will be at %p\n", blocks[split]->startAddr + (int)pow(2, newsplit + MIN_ORDER));
-        Block *block2 = new_block(blocks[split]->startAddr + (int)pow(2, newsplit + MIN_ORDER));
-        blocks[newsplit] = block1;
-        blocks[split] = NULL;
-      }
-      split--;
+  int split = MAX_INDEX;
+  while(blocks[order] == NULL) {
+    if(blocks[split] == NULL) {
+      split --;
+      continue;
     }
-  }
+    // Split here
+    int newsplit = split - 1;
+    if(blocks[newsplit] == NULL) {
+      printf("splitting %p into two\n", blocks[split]->startAddr);
+      void *addr = blocks[split]->startAddr;
+      blocks[split] = blocks[split]->next;
 
-  printf("Trying to allocated memory ..\n");
+      Block *block1 = new_block(addr);
+      // printf("second block will be at %p\n", blocks[split]->startAddr + (int)pow(2, newsplit + MIN_ORDER));
+      Block *block2 = new_block(addr + (int)pow(2, newsplit + MIN_ORDER));
+      block1->next = block2;
+      block2->previous = block1;
+      blocks[newsplit] = block1;
+      printf("Block{split}\n");
+      // blocks[split] = blocks[split]->next;
+      // print_block(blocks[split], split);
+    }
+    split--;
+  }
+  print_blocklist(blocks, 10);
+  printf("Trying to allocate memory ..\n");
   // Find a free block for the calculated order
   if(blocks[order] != NULL) {
-    Block *freeblock = blocks[order];
-    freeblock->size = totalSize;
-    freeblock->status = USED;
-    blocks[order] = freeblock->next;
-    printf("The block is at %p\n", freeblock->startAddr);
-    return freeblock->startAddr + sizeof(Block);
+    return alloc_block(blocks[order], totalSize);
   }
 
   // If there are no blocks available, break the existing blocks
@@ -89,7 +87,6 @@ void *my_malloc(size_t size) {
     printf("Probably need to call sbrk now!\n");
     // FIXME: Abort or extend data segment using `sbrk`
   }
-
 }
 
 int find_order(size_t size) {
@@ -110,5 +107,7 @@ int find_order(size_t size) {
 
 int main() {
   printf("Allocated memory at %p\n", my_malloc(900));
+  printf("Allocated memory at %p\n", my_malloc(200));
+  print_blocklist(blocks, 10);
   return 0;
 }
