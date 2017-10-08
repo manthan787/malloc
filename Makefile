@@ -7,9 +7,9 @@ all: check
 clean:
 	rm -rf libmalloc.so malloc.o test1 malloc malloc.o block.o
 
-test: malloc.c block.c freelist.c
-	gcc -g -o malloc $^ -lm
-	./malloc
+test: test1.c block.c freelist.c malloc.c
+	gcc -g -o $@ $^ -lm
+	./test
 
 malloc.o:
 	gcc -g -o malloc.o malloc.c -lm
