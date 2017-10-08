@@ -42,6 +42,12 @@ void init_heap() {
   blocks[9] = new_block(heap);
 }
 
+/**
+ * Partition blocks until memory request for given `order` can
+ * be satisfied.
+ * For example, if a memory request for order 8 (2048 bytes) is requested
+ * a single order 9 block (4096 bytes) is partitioned.
+ */
 void partition_blocks(int order) {
   int split = MAX_INDEX + 1;
   printf("Start split at %d\n", split);
@@ -70,23 +76,21 @@ void *my_malloc(size_t size) {
   size_t totalSize = size + sizeof(Block);
 
   // Find the order of the given size
-  int order = find_order(totalSize);
+  int level = find_level(totalSize);
 
-  if(blocks[order] != NULL) {
-    Block* allocated = mark_block(blocks[order], totalSize);
-    blocks[order] = (Block *)allocated->next;
+  partition_blocks(level);
+
+  if(blocks[level] != NULL) {
+    Block* allocated = mark_block(blocks[level], totalSize);
+    blocks[level] = (Block *)allocated->next;
     return allocated->startAddr + sizeof(Block);
-  } else partition_blocks(order);
-
-  // If there are no blocks available, break the existing blocks
-  if(order == MAX_INDEX) {
-    printf("Probably need to call sbrk now!\n");
-    // FIXME: Abort or extend data segment using `sbrk`
-  }
+  } else if(level == MAX_INDEX) {
+    printf("Need a sbrk call\n");
+  } else {}
 }
 
-int find_order(size_t size) {
-  printf("Finding order for %zu bytes\n", size);
+int find_level(size_t size) {
+  // FIXME: Handle sizes bigger than 2**MAX_ORDER
   int order = MAX_ORDER;
   while(order >= MIN_ORDER) {
     if(size <= pow(2, order) && size > pow(2, order - 1)) {
@@ -102,10 +106,10 @@ int find_order(size_t size) {
 }
 
 int main() {
-  printf("Allocated memory at %p\n", my_malloc(900));
-  printf("Allocated memory at %p\n", my_malloc(200));
-  printf("Allocated memory at %p\n", my_malloc(900));
-  printf("Allocated memory at %p\n", my_malloc(200));
-  print_blocklist(blocks, 10);
+  printf("Allocated memory at %p\n", my_malloc(4000));
+  printf("Allocated memory at %p\n", my_malloc(4000));
+  // printf("Allocated memory at %p\n", my_malloc(900));
+  // printf("Allocated memory at %p\n", my_malloc(200));
+  // print_blocklist(blocks, 10);
   return 0;
 }
