@@ -19,6 +19,9 @@ Block *blocks[MAX_INDEX + 1];
  //Prints an entire block list in human readable format
 void print_blocklist(Block**, int);
 
+// Prints total free memory in the Block list in bytes
+void free_memory(Block**, int);
+
 // Partitions free lists to satisfy a memory request
 void partition_blocks(Block**, int);
 #endif
