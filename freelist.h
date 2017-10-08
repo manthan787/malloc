@@ -14,7 +14,7 @@
  * blocks[0] stores blocks having size 8 bytes
  * and blocks[9] stores blocks having size 4096 bytes
  */
-static Block *blocks[MAX_INDEX + 1];
+Block *blocks[MAX_INDEX + 1];
 
  //Prints an entire block list in human readable format
 void print_blocklist(Block**, int);
