@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <math.h>
+#include <errno.h>
 #include "block.h"
 
 // FIXME: Fix the internal fragmentation problem pointed out by the professor
@@ -86,7 +87,9 @@ void *my_malloc(size_t size) {
     return allocated->startAddr + sizeof(Block);
   } else if(level == MAX_INDEX) {
     printf("Need a sbrk call\n");
-  } else {}
+  } else {
+    errno = ENOMEM;
+  }
 }
 
 int find_level(size_t size) {
