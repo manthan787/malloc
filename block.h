@@ -6,11 +6,11 @@ typedef enum block_status_t { USED, FREE } BlockStatus;
 
 // Memory Block to store metdata about the allocated memory blocks
 typedef struct block_t {
-  void *startAddr; // Starting address of the block
-  size_t size; // Size occupied at this block
-  struct block_t *next; // Next block
-  struct block_t *previous; // Previous Block
-  BlockStatus status; // If the block is occupied or free
+  void *startAddr;           // Starting address of the block
+  size_t size;               // Size occupied at this block
+  struct block_t *next;      // Next block
+  struct block_t *previous;  // Previous Block
+  BlockStatus status;        // If the block is occupied or free
 } Block;
 
 /**
@@ -25,12 +25,12 @@ typedef struct block_t {
  * `previous`: NULL
  * `status`: FREE
  */
-Block* new_block(void*);
+Block *new_block(void *);
 
-void* alloc_block(Block*, size_t);
+Block *mark_block(Block *, size_t);
 
-void print_block(Block*, int);
+void print_block(Block *, int);
 
-void print_blocklist(Block**, int);
+void print_blocklist(Block **, int);
 
 #endif
