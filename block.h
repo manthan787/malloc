@@ -13,7 +13,18 @@ typedef struct block_t {
   BlockStatus status; // If the block is occupied or free
 } Block;
 
-// Creates a new block instance if given an address
+/**
+ * Given an address, this function should create a new block
+ * at that address and initialize its fields.
+ *
+ * Initial values are:
+ * `startAddr`: is the specified address to this function.
+ * `size`: 0, since this block hasn't been returned as a memory
+ *        allocation request, yet.
+ * `next`: NULL
+ * `previous`: NULL
+ * `status`: FREE
+ */
 Block* new_block(void*);
 
 #endif
