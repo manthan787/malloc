@@ -5,11 +5,14 @@ CFLAGS=-g -O0 -fPIC
 all: check
 
 clean:
-	rm -rf libmalloc.so malloc.o test1 malloc
+	rm -rf libmalloc.so malloc.o test1 malloc malloc.o block.o
 
-test:
-	gcc -o malloc malloc.c -lm
+test: malloc.c block.c
+	gcc -o malloc $^ -lm
 	./malloc
+
+malloc.o:
+	gcc -g -o malloc.o malloc.c -lm
 
 libmalloc.so: malloc.o
 	$(CC) -shared -o libmalloc.so malloc.o
