@@ -27,10 +27,19 @@ typedef struct block_t {
  */
 Block *new_block(void *);
 
+/**
+ * Marks the given block as allocated
+ */
 Block *mark_block(Block *, size_t);
 
+/**
+ * Print a block in human-readable format
+ */
 void print_block(Block *, int);
 
+/**
+ * Prints an entire block list in human readable format
+ */
 void print_blocklist(Block **, int);
 
 #endif
