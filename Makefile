@@ -8,7 +8,7 @@ clean:
 	rm -rf libmalloc.so malloc.o test1 malloc malloc.o block.o
 
 test: malloc.c block.c
-	gcc -o malloc $^ -lm
+	gcc -g -o malloc $^ -lm
 	./malloc
 
 malloc.o:
