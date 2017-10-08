@@ -1,6 +1,6 @@
 #ifndef BLOCK_H
 #define BLOCK_H
-
+#include<stdlib.h>
 // Enum to assign a status to the memory blocks
 typedef enum block_status_t { USED, FREE } BlockStatus;
 
