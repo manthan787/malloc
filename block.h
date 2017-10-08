@@ -27,4 +27,10 @@ typedef struct block_t {
  */
 Block* new_block(void*);
 
+void* alloc_block(Block*, size_t);
+
+void print_block(Block*, int);
+
+void print_blocklist(Block**, int);
+
 #endif
