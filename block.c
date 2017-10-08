@@ -1,5 +1,4 @@
 #include "block.h"
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -29,18 +28,5 @@ void print_block(Block* b, int level) {
     printf("\tNext: %p\n", b->next);
     printf("\tPrevious: %p\n", b->previous);
     printf("------------------------------\n");
-  }
-}
-
-void print_blocklist(Block** blocks, int length) {
-  assert(length > 0);
-  int i;
-  for (i = 0; i < length; i++) {
-    printf("Level %d\n", i);
-    Block* b = blocks[i];
-    while (b != NULL) {
-      print_block(b, i);
-      b = b->next;
-    }
   }
 }

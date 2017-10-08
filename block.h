@@ -37,9 +37,4 @@ Block *mark_block(Block *, size_t);
  */
 void print_block(Block *, int);
 
-/**
- * Prints an entire block list in human readable format
- */
-void print_blocklist(Block **, int);
-
 #endif
