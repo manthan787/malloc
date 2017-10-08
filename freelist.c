@@ -13,7 +13,7 @@ void print_blocklist(Block** blocks, int length) {
     printf("Level %d\n", i);
     Block* b = blocks[i];
     while (b != NULL) {
-      print_block(b, i);
+      print_block(b);
       b = b->next;
     }
   }
@@ -38,8 +38,11 @@ void partition_blocks(Block** blocks, int order) {
       blocks[split] = blocks[split]->next;
       Block *block1 = new_block(addr);
       Block *block2 = new_block(addr + (int)pow(2, newsplit + MIN_ORDER));
-      block1->next = block2;
-      block2->previous = block1;
+      block1->level = newsplit;
+      block2->level = newsplit;
+      block1->next = block2->startAddr;
+      block2->previous = block1->startAddr;
+      if(blocks[split] != NULL) blocks[split]->previous = block2->startAddr;
       blocks[newsplit] = block1;
     }
   }
