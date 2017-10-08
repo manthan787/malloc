@@ -15,7 +15,10 @@
     exit(-1);    \
   }
 
-const int MIN_ORDER = 3, MAX_ORDER = 12, MAX_INDEX = 9;
+#define MAX_INDEX 9
+#define MIN_INDEX 0
+
+const int MIN_ORDER = 3, MAX_ORDER = 12;
 
 // Location of break marker in the heap
 static void *heap = NULL;
@@ -39,6 +42,26 @@ void init_heap() {
   blocks[9] = new_block(heap);
 }
 
+void partition_blocks(int order) {
+  int split = MAX_INDEX + 1;
+  printf("Start split at %d\n", split);
+  while(blocks[order] == NULL && split > MIN_INDEX) {
+    split--;
+    if(blocks[split] == NULL) continue;
+    int newsplit = split - 1;
+    if(blocks[newsplit] == NULL) {
+      printf("splitting %p into two\n", blocks[split]->startAddr);
+      void *addr = blocks[split]->startAddr;
+      blocks[split] = blocks[split]->next;
+      Block *block1 = new_block(addr);
+      Block *block2 = new_block(addr + (int)pow(2, newsplit + MIN_ORDER));
+      block1->next = block2;
+      block2->previous = block1;
+      blocks[newsplit] = block1;
+    }
+  }
+}
+
 void *my_malloc(size_t size) {
   // Initialize if heap_break doesn't point to anything
   if (!heap) init_heap();
@@ -48,39 +71,12 @@ void *my_malloc(size_t size) {
 
   // Find the order of the given size
   int order = find_order(totalSize);
-  printf("Order: %d\n", order);
 
-  int split = MAX_INDEX;
-  while(blocks[order] == NULL) {
-    if(blocks[split] == NULL) {
-      split --;
-      continue;
-    }
-    // Split here
-    int newsplit = split - 1;
-    if(blocks[newsplit] == NULL) {
-      printf("splitting %p into two\n", blocks[split]->startAddr);
-      void *addr = blocks[split]->startAddr;
-      blocks[split] = blocks[split]->next;
-
-      Block *block1 = new_block(addr);
-      // printf("second block will be at %p\n", blocks[split]->startAddr + (int)pow(2, newsplit + MIN_ORDER));
-      Block *block2 = new_block(addr + (int)pow(2, newsplit + MIN_ORDER));
-      block1->next = block2;
-      block2->previous = block1;
-      blocks[newsplit] = block1;
-      printf("Block{split}\n");
-      // blocks[split] = blocks[split]->next;
-      // print_block(blocks[split], split);
-    }
-    split--;
-  }
-  print_blocklist(blocks, 10);
-  printf("Trying to allocate memory ..\n");
-  // Find a free block for the calculated order
   if(blocks[order] != NULL) {
-    return alloc_block(blocks[order], totalSize);
-  }
+    Block* allocated = mark_block(blocks[order], totalSize);
+    blocks[order] = (Block *)allocated->next;
+    return allocated->startAddr + sizeof(Block);
+  } else partition_blocks(order);
 
   // If there are no blocks available, break the existing blocks
   if(order == MAX_INDEX) {
@@ -106,6 +102,8 @@ int find_order(size_t size) {
 }
 
 int main() {
+  printf("Allocated memory at %p\n", my_malloc(900));
+  printf("Allocated memory at %p\n", my_malloc(200));
   printf("Allocated memory at %p\n", my_malloc(900));
   printf("Allocated memory at %p\n", my_malloc(200));
   print_blocklist(blocks, 10);
