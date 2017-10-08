@@ -63,18 +63,9 @@ void *my_malloc(size_t size) {
       int newsplit = split - 1;
       if(blocks[newsplit] == NULL) {
         printf("splitting %p into two\n", blocks[split]->startAddr);
-        Block *block1 = (Block *) blocks[split]->startAddr;
-        block1->startAddr = blocks[split]->startAddr;
-        // block1->status = FREE;
-        block1->size = 0;
-        block1->previous = NULL;
-        printf("second block will be at %p\n", blocks[split]->startAddr + (int)pow(2, newsplit + MIN_ORDER));
-        Block *block2 = (Block *) (blocks[split]->startAddr + (int)pow(2, newsplit + MIN_ORDER));
-        // block2->status = 1;
-        block2->size = 0;
-        block2->previous = block1;
-        block2->next = NULL;
-        block1->next = block2;
+        Block *block1 = new_block(blocks[split]->startAddr);
+        // printf("second block will be at %p\n", blocks[split]->startAddr + (int)pow(2, newsplit + MIN_ORDER));
+        Block *block2 = new_block(blocks[split]->startAddr + (int)pow(2, newsplit + MIN_ORDER));
         blocks[newsplit] = block1;
         blocks[split] = NULL;
       }
