@@ -30,7 +30,6 @@ void partition_blocks(Block** blocks, int order) {
   printf("Start split at %d\n", split);
   while(blocks[order] == NULL && split > MIN_INDEX) {
     split--;
-    printf("Block at 9 %p\n", blocks[9]);
     if(blocks[split] == NULL) continue;
     int newsplit = split - 1;
     if(blocks[newsplit] == NULL) {
