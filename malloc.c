@@ -89,6 +89,7 @@ void *my_malloc(size_t size) {
     printf("Need a sbrk call\n");
   } else {
     errno = ENOMEM;
+    return NULL;
   }
 }
 
