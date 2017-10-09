@@ -40,12 +40,13 @@ void *my_malloc(size_t size) {
 
   // Find the order of the given size
   int level = find_level(totalSize);
-
+  printf("Level is %d for request %zu\n", level, size);
   partition_blocks(blocks, level);
 
   if(blocks[level] != NULL) {
     Block* allocated = mark_block(blocks[level], totalSize);
-    blocks[level] = (Block *)allocated->next;
+    if(allocated->next->level == level) blocks[level] = (Block *)allocated->next;
+    else blocks[level] = NULL;
     return allocated->startAddr + sizeof(Block);
   } else if(level == MAX_INDEX) {
     printf("Need a sbrk call\n");
