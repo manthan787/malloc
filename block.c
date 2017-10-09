@@ -20,6 +20,11 @@ Block* mark_block(Block* b, size_t totalSize) {
   return freeblock;
 }
 
+void unmark_block(Block *b) {
+  b->status = FREE;
+  b->size = 0;
+}
+
 void print_block(Block* b) {
   if (b != NULL) {
     printf("----- Block Information-----\n");

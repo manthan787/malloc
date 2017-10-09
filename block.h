@@ -35,6 +35,11 @@ Block *new_block(void *, int);
 Block *mark_block(Block *, size_t);
 
 /**
+ * Marks the given block as free
+ */
+void unmark_block(Block *);
+
+/**
  * Print a block in human-readable format
  */
 void print_block(Block *);
