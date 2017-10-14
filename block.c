@@ -3,9 +3,7 @@
 #include <stdlib.h>
 
 Block* new_block(void* addr, int level) {
-  Block* b = (Block*)addr;
-  b->startAddr = addr;
-  b->size = 0;
+  Block* b = (Block*) addr;
   b->next = NULL;
   b->previous = NULL;
   b->status = FREE;
@@ -13,23 +11,19 @@ Block* new_block(void* addr, int level) {
   return b;
 }
 
-Block* mark_block(Block* b, size_t totalSize) {
-  Block* freeblock = b->startAddr;
-  freeblock->size = totalSize;
+Block* mark_block(Block* b) {
+  Block* freeblock = b;
   freeblock->status = USED;
   return freeblock;
 }
 
 void unmark_block(Block *b) {
-  b->status = FREE;
-  b->size = 0;
-}
+  b->status = FREE;}
 
 void print_block(Block* b) {
   if (b != NULL) {
     printf("----- Block Information ------\n");
-    printf("\taddr: %p\n", b->startAddr);
-    printf("\tsize: %zu\n", b->size);
+    printf("\taddr: %p\n", b);
     printf("\tstatus: %d\n", b->status);
     printf("\tNext: %p\n", b->next);
     printf("\tPrevious: %p\n", b->previous);
