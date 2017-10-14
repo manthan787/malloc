@@ -27,7 +27,7 @@ void unmark_block(Block *b) {
 
 void print_block(Block* b) {
   if (b != NULL) {
-    printf("----- Block Information-----\n");
+    printf("----- Block Information ------\n");
     printf("\taddr: %p\n", b->startAddr);
     printf("\tsize: %zu\n", b->size);
     printf("\tstatus: %d\n", b->status);
