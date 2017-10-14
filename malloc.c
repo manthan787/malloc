@@ -45,8 +45,12 @@ void *my_malloc(size_t size) {
 
   if(blocks[level] != NULL) {
     Block* allocated = mark_block(blocks[level], totalSize);
-    if(allocated->next->level == level) blocks[level] = (Block *)allocated->next;
-    else blocks[level] = NULL;
+    blocks[level] = (Block *)allocated->next;
+    if(blocks[level]) blocks[level]->previous = allocated->previous;
+    allocated->next = NULL;
+    allocated->previous = NULL;
+    printf("Allocated block \n");
+    print_block(allocated);
     return allocated->startAddr + sizeof(Block);
   } else if(level == MAX_INDEX) {
     printf("Need a sbrk call\n");
