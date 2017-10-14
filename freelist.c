@@ -58,22 +58,20 @@ void partition_blocks(Block **blocks, int order) {
     if(blocks[newsplit_idx] == NULL) {
       // Point to the start address of the block to be split, so that we can
       // update the head of the free list for `split_idx`
-      void *addr = blocks[split_idx]->startAddr;
+      void *addr = blocks[split_idx];
       blocks[split_idx] = blocks[split_idx]->next;
-
       // Create two new blocks at the address of previous bigger block, by
       // dividing it into two blocks, make them neighbors
       Block *block1 = new_block(addr, newsplit_idx);
       Block *block2 =
           new_block(addr + (int)pow(2, newsplit_idx + MIN_ORDER), newsplit_idx);
-      block1->next = block2->startAddr;
-      block2->previous = block1->startAddr;
-
+      block1->next = block2;
+      block2->previous = block1;
       // Update the previous pointer of the new block assigned to the previous
       // level i.e. (split_idx)
-      if (blocks[split_idx] != NULL)
-        blocks[split_idx]->previous = block2->startAddr;
-      block2->next = blocks[split_idx];
+      // if (blocks[split_idx] != NULL)
+      //   blocks[split_idx]->previous = block2->startAddr;
+      // block2->next = blocks[split_idx];
 
       // Put the first new block as the head of the free list for the newsplit_idx
       blocks[newsplit_idx] = block1;
