@@ -1,6 +1,8 @@
 #include "free.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+#include <stdint.h>
 #include "block.h"
 #include "freelist.h"
 
@@ -12,50 +14,41 @@ void my_free(void *ptr) {
   print_block(b);
   unmark_block(b);
   Block *buddy = get_buddy(b);
-  if(buddy == NULL) {
-    blocks[b->level] = b;
-  }
+
   while (buddy != NULL && buddy->status != USED) {
     printf("Buddy block\n");
     print_block(buddy);
-    Block *merged_block;
-    int level = buddy->level;
-    if(buddy->startAddr > b->startAddr) { // Buddy is to the right
-      merged_block = new_block(b->startAddr, buddy->level + 1);
-      merged_block->next = buddy->next;
-      merged_block->previous = b->previous;
-      if(buddy->next != NULL) buddy->next->previous = merged_block;
+    if(buddy->next != NULL && buddy->previous != NULL) {
+      buddy->next->previous = buddy->previous;
+      buddy->previous->next = buddy->next;
+      blocks[buddy->level] = buddy->previous;
+    } else if(buddy->next != NULL) {
+      buddy->next->previous = NULL;
+      blocks[buddy->level] = buddy->next;
+    } else if(buddy->previous != NULL) {
+      buddy->previous->next = NULL;
+      blocks[buddy->level] = buddy->previous;
     } else {
-      merged_block = new_block(buddy->startAddr, buddy->level + 1);
-      merged_block->next = b->next;
-      merged_block->previous = buddy->previous;
+      blocks[buddy->level] = NULL;
     }
-
-    // Blocks at level are merged, so make the free list for that NULL
-    blocks[level] = NULL;
-    if(blocks[level + 1] == NULL) {
-      blocks[level + 1] = merged_block;
-    } else {
-      if(merged_block < blocks[level + 1]) {
-        Block* tmp = blocks[level + 1];
-        blocks[level + 1] = merged_block;
-        tmp->previous = merged_block;
-      } else {
-        merged_block->previous = blocks[level + 1];
-        merged_block->next = blocks[level + 1]->next;
-        blocks[level + 1]->next = merged_block;
-      }
-    }
-    buddy = get_buddy(merged_block);
+    if(buddy < b) b = buddy;
+    b->level += 1;
+    buddy = get_buddy(b);
   }
+
+  if(blocks[b->level]) {
+    Block* f = blocks[b->level];
+    f->previous = b;
+    b->next = f;
+  }
+  blocks[b->level] = b;
 }
 
 Block *get_buddy(Block *header) {
-  if (header->next && header->next->level == header->level) {
-    return header->next;
-  } else if (header->previous && header->previous->level == header->level) {
-    return header->previous;
-  } else {
-    return NULL;
-  }
+  if(header->level == MAX_INDEX) return NULL;
+  void *buddy = (void *)((uintptr_t) header ^ (uintptr_t)pow(2, header->level + MIN_ORDER));
+  printf("Buddy at %p\n", buddy);
+  Block *b = (Block *) buddy;
+  if(b && b->level == header->level) return b;
+  return NULL;
 }
