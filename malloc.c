@@ -6,11 +6,13 @@
 #include <unistd.h>
 #include <math.h>
 #include <errno.h>
-#include "block.h"
+#include <pthread.h>
+#include <sys/types.h>
+#include <sys/syscall.h>
+#include <sys/mman.h>
+#include "malloc.h"
 #include "freelist.h"
 #include "config.h"
-
-// FIXME: Fix the internal fragmentation problem pointed out by the professor
 
 #define ERROR(e) \
   {              \
@@ -19,7 +21,6 @@
   }
 
 // Location of break marker in the heap
-static void *heap = NULL;
 
 /**
  * Initialize the malloc library by extending heap size
@@ -30,7 +31,7 @@ void init_heap() {
     errno = ENOMEM;
     ERROR("sbrk");
   }
-  printf("block starts at %p address\n", heap);
+  stats.numArenas += 1;
   blocks[MAX_INDEX] = new_block(heap, MAX_INDEX);
 }
 
@@ -44,7 +45,6 @@ void extend_heap() {
     errno = ENOMEM;
     ERROR("sbrk");
   }
-
   // If free list for maximum index is not null, add the newly allocated
   // heapsize at the end of the list
   if(blocks[MAX_INDEX] != NULL) {
@@ -54,6 +54,7 @@ void extend_heap() {
     }
     b->next = new_block(heap, MAX_INDEX);
     b->next->previous = b;
+    b->level = MAX_INDEX;
   }
   else blocks[MAX_INDEX] = new_block(heap, MAX_INDEX);
 }
@@ -73,46 +74,45 @@ void extend_heap() {
  *     satisfied. The blocks are partitioned like in the previous step if
  *     required.
  *
- * If the memory request is way bigger than the maximum limit for a free block
- * which is 4096 bytes, multiple 4096 bytes are allocated and added to the free
- * list, in order to satisfy the memory request.
+ * If the memory request is bigger than the maximum limit for a free block
+ * which is 4096 bytes, the request is satisfied using `mmap`. This memory
+ * is represented in the `mallinfo` struct as `hblks`(blocks) and `hblkhd`(bytes)
  * @param  size [description]
  * @return      [description]
  */
-void *my_malloc(size_t size) {
+void *malloc(size_t size) {
+  pthread_mutex_lock(&mutex);
+  stats.allocreq += 1;
   // Initialize if heap_break doesn't point to anything
   if (!heap) init_heap();
-
-  // Heap space already allocated
   size_t totalSize = size + sizeof(Block);
-
   // Find the order of the given size
   int level = find_level(totalSize);
-
   // Extend heap if the memory requested can not be satisfied
   if(level > MAX_INDEX) {
-    while(level > MAX_INDEX) {
-      extend_heap();
-      level--;
-    }
+    int mem = (int) pow(2, level + MIN_ORDER);
+    void *p = mmap(0, mem, PROT_READ | PROT_WRITE,
+                   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    assert(p != MAP_FAILED);
+    Block* b = new_block(p, level);
+    stats.hblks += 1;
+    stats.hblkhd += totalSize;
+    pthread_mutex_unlock(&mutex);
+    return (char *) b + sizeof(Block);
   }
-
   // If there's not free block available on the free list for requested level
   // find the next big free block
   int free = level;
   while(blocks[free] != NULL && free < MAX_INDEX) {
     free++;
   }
-
   // If the biggest available index is MAX INDEX
   // then extend heap
   if(free == MAX_INDEX) {
     extend_heap();
   }
-
   // Partition blocks into smaller blocks if necessary
   partition_blocks(blocks, level);
-
   // Allocate Block
   if(blocks[level] != NULL) {
     Block* allocated = mark_block(blocks[level]);
@@ -120,10 +120,13 @@ void *my_malloc(size_t size) {
     if(blocks[level]) blocks[level]->previous = allocated->previous;
     allocated->next = NULL;
     allocated->previous = NULL;
+    stats.uordblks += totalSize;
+    pthread_mutex_unlock(&mutex);
     return (char*) allocated + sizeof(Block);
   }
 
   // Return NULL if everything fails
+  pthread_mutex_unlock(&mutex);
   return NULL;
 }
 
@@ -146,4 +149,18 @@ int find_level(size_t size) {
     level++;
   }
   return level;
+}
+
+/**
+ * Prints malloc stats
+ */
+void malloc_stats() {
+  printf("\t----------- Malloc stats -----------\n");
+  printf("\tAllocated : %d\n", stats.uordblks);
+  printf("\tNumber of Arenas: %d\n", stats.numArenas);
+  printf("\tNumber of mmapped regions: %d\n", stats.hblks);
+  printf("\tSpace allocated in mmapped regions (bytes): %d\n", stats.hblkhd);
+  printf("\tTotal Allocation Requests: %d\n", stats.allocreq);
+  printf("\tTotal Free Requests: %d\n", stats.allocreq);
+  printf("\t------------------------------------\n");
 }
