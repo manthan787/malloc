@@ -81,6 +81,7 @@ void extend_heap() {
  * @return      [description]
  */
 void *malloc(size_t size) {
+  printf("Malloc  %zu\n", size);
   pthread_mutex_lock(&mutex);
   stats.allocreq += 1;
   // Initialize if heap_break doesn't point to anything
@@ -102,13 +103,16 @@ void *malloc(size_t size) {
   }
   // If there's not free block available on the free list for requested level
   // find the next big free block
-  int free = level;
-  while(blocks[free] != NULL && free < MAX_INDEX) {
-    free++;
+  int free = level + 1;
+  if(blocks[level] == NULL) {
+    while(blocks[free] != NULL && free < MAX_INDEX) {
+      free++;
+    }
   }
+
   // If the biggest available index is MAX INDEX
   // then extend heap
-  if(free == MAX_INDEX) {
+  if(free >= MAX_INDEX) {
     extend_heap();
   }
   // Partition blocks into smaller blocks if necessary
@@ -124,7 +128,6 @@ void *malloc(size_t size) {
     pthread_mutex_unlock(&mutex);
     return (char*) allocated + sizeof(Block);
   }
-
   // Return NULL if everything fails
   pthread_mutex_unlock(&mutex);
   return NULL;
