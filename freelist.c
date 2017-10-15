@@ -6,10 +6,12 @@
 #include "block.h"
 #include "config.h"
 
-void print_blocklist(Block **blocks, int length) {
-  assert(length > 0);
+/**
+ * Prints the list of blocks in the free list
+ */
+void print_blocklist() {
   int i;
-  for (i = 0; i < length; i++) {
+  for (i = 0; i <= MAX_INDEX; i++) {
     printf("Level %d\n", i);
     Block *b = blocks[i];
     while (b != NULL && b->level == i) {
@@ -48,10 +50,8 @@ void partition_blocks(Block **blocks, int order) {
   print_block(blocks[order]);
   while (blocks[order] == NULL && split_idx > MIN_INDEX) {
     split_idx--;
-    printf("Split IDX %d\n", split_idx);
     // If there are no blocks at given level, continue
     if (blocks[split_idx] == NULL) continue;
-
     // Otherwise, split the current index into two
     // Naturally, the new split index is the (split_idx - 1)
     int newsplit_idx = split_idx - 1;
@@ -67,12 +67,6 @@ void partition_blocks(Block **blocks, int order) {
           new_block(addr + (int)pow(2, newsplit_idx + MIN_ORDER), newsplit_idx);
       block1->next = block2;
       block2->previous = block1;
-      // Update the previous pointer of the new block assigned to the previous
-      // level i.e. (split_idx)
-      // if (blocks[split_idx] != NULL)
-      //   blocks[split_idx]->previous = block2->startAddr;
-      // block2->next = blocks[split_idx];
-
       // Put the first new block as the head of the free list for the newsplit_idx
       blocks[newsplit_idx] = block1;
     }
