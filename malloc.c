@@ -26,11 +26,59 @@ static void *heap = NULL;
  */
 void init_heap() {
   // Increment the data segment size by page size
-  if ((heap = sbrk(sysconf(_SC_PAGESIZE))) == (void *)-1) ERROR("sbrk");
+  if ((heap = sbrk(sysconf(_SC_PAGESIZE))) == (void *)-1) {
+    errno = ENOMEM;
+    ERROR("sbrk");
+  }
   printf("block starts at %p address\n", heap);
   blocks[MAX_INDEX] = new_block(heap, MAX_INDEX);
 }
 
+/**
+ * Extends the heap, by extending heap size and adding more blocks
+ * at the end of the freelist
+ */
+void extend_heap() {
+  // Increment the data segment size by page size
+  if ((heap = sbrk(sysconf(_SC_PAGESIZE))) == (void *)-1) {
+    errno = ENOMEM;
+    ERROR("sbrk");
+  }
+
+  // If free list for maximum index is not null, add the newly allocated
+  // heapsize at the end of the list
+  if(blocks[MAX_INDEX] != NULL) {
+    Block* b = blocks[MAX_INDEX];
+    while(b->next != NULL) {
+      b = b->next;
+    }
+    b->next = new_block(heap, MAX_INDEX);
+    b->next->previous = b;
+  }
+  else blocks[MAX_INDEX] = new_block(heap, MAX_INDEX);
+}
+
+
+/**
+ * Allocates memory for the given memory request of size `size`
+ *
+ * If this is the first request to this function, break pointer is
+ * moved by size `PAGE SIZE`.
+ * If there's a memory block available for requested `size`, it is
+ * simply returned.
+ * If there's no free block for requested `size`:
+ *   - Check if there's a bigger block available. If so, the bigger block
+ *     is broken into two until the request can be satisfied.
+ *   - Otherwise the heap is extended again by PAGESIZE and the request is
+ *     satisfied. The blocks are partitioned like in the previous step if
+ *     required.
+ *
+ * If the memory request is way bigger than the maximum limit for a free block
+ * which is 4096 bytes, multiple 4096 bytes are allocated and added to the free
+ * list, in order to satisfy the memory request.
+ * @param  size [description]
+ * @return      [description]
+ */
 void *my_malloc(size_t size) {
   // Initialize if heap_break doesn't point to anything
   if (!heap) init_heap();
@@ -40,38 +88,62 @@ void *my_malloc(size_t size) {
 
   // Find the order of the given size
   int level = find_level(totalSize);
-  printf("Level is %d for request %zu\n", level, size);
+
+  // Extend heap if the memory requested can not be satisfied
+  if(level > MAX_INDEX) {
+    while(level > MAX_INDEX) {
+      extend_heap();
+      level--;
+    }
+  }
+
+  // If there's not free block available on the free list for requested level
+  // find the next big free block
+  int free = level;
+  while(blocks[free] != NULL && free < MAX_INDEX) {
+    free++;
+  }
+
+  // If the biggest available index is MAX INDEX
+  // then extend heap
+  if(free == MAX_INDEX) {
+    extend_heap();
+  }
+
+  // Partition blocks into smaller blocks if necessary
   partition_blocks(blocks, level);
 
+  // Allocate Block
   if(blocks[level] != NULL) {
     Block* allocated = mark_block(blocks[level]);
     blocks[level] = (Block *) allocated->next;
     if(blocks[level]) blocks[level]->previous = allocated->previous;
     allocated->next = NULL;
     allocated->previous = NULL;
-    printf("Allocated block \n");
-    print_block(allocated);
-    return (char *)allocated + sizeof(Block);
-  } else if(level == MAX_INDEX) {
-    printf("Need a sbrk call\n");
-  } else {
-    errno = ENOMEM;
-    return NULL;
+    return (char*) allocated + sizeof(Block);
   }
+
+  // Return NULL if everything fails
+  return NULL;
 }
 
+/**
+ * Find the level of the given size, so that we can search for a free block
+ * in the free list.
+ * @param  size size for which level is to be calculated
+ * @return      level for the given size. This can be greater than MAX_INDEX,
+ *              but can't be lesser than MIN_INDEX
+ */
 int find_level(size_t size) {
-  // FIXME: Handle sizes bigger than 2**MAX_ORDER
-  int order = MAX_ORDER;
-  while(order >= MIN_ORDER) {
-    if(size <= pow(2, order) && size > pow(2, order - 1)) {
-      // The order index in the blocks array starts from 0,
-      // so we subtract the smallest order out of the actual
-      // order so that we can search the free blocks from the
-      // correct list
-      return order - MIN_ORDER;
-    }
-    order--;
+  // start at the smallest order available
+  int level = 0;
+  int level_mem = (int) pow(2, MIN_ORDER); // Memory at initial level
+
+  // Keep increasing the level and the memory at that level
+  // until we can satisfy `size`
+  while (level_mem < size) {
+    level_mem *= 2;
+    level++;
   }
-  return 0;
+  return level;
 }
