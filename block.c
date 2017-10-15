@@ -18,7 +18,9 @@ Block* mark_block(Block* b) {
 }
 
 void unmark_block(Block *b) {
-  b->status = FREE;}
+  b->status = FREE;
+  b->level = -1;
+}
 
 void print_block(Block* b) {
   if (b != NULL) {
