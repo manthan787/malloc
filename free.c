@@ -14,7 +14,6 @@ void my_free(void *ptr) {
   print_block(b);
   unmark_block(b);
   Block *buddy = get_buddy(b);
-
   while (buddy != NULL && buddy->status != USED) {
     printf("Buddy block\n");
     print_block(buddy);
