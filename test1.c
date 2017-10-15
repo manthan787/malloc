@@ -2,13 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "malloc.h"
-#include "freelist.h"
+#include "free.h"
+#include "block.h"
 
 int main() {
-  printf("Allocated memory at %p\n", my_malloc(900));
-  // printf("Allocated memory at %p\n", my_malloc(1000));
-  // printf("Allocated memory at %p\n", my_malloc(900));
-  // printf("Allocated memory at %p\n", my_malloc(200));
-  print_blocklist(blocks, 10);
+  void *p4 = malloc(107384);
+  print_block(p4 - sizeof(Block));
+  print_blocklist();
+  void *p = calloc(4, 10000);
+  print_block(p - sizeof(Block));
+  free(p);
+  free(p4);
   return 0;
 }
