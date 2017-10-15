@@ -11,8 +11,11 @@
 #include <sys/types.h>
 
 void *realloc(void *ptr, size_t size) {
-  if (ptr == NULL) return NULL;
-  if (size == 0) {
+  if (ptr == NULL) {
+    return malloc(size);
+  }
+
+  if(ptr != NULL && size == 0) {
     free(ptr);
     return NULL;
   }
