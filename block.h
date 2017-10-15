@@ -17,9 +17,6 @@ typedef struct block_t {
  * at that address and initialize its fields.
  *
  * Initial values are:
- * `startAddr`: is the specified address to this function.
- * `size`: 0, since this block hasn't been returned as a memory
- *        allocation request, yet.
  * `next`: NULL
  * `previous`: NULL
  * `status`: FREE
