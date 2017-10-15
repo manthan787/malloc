@@ -3,6 +3,6 @@
 
 #include <stdlib.h>
 
-void *my_realloc(void *, size_t);
+void *realloc(void *, size_t);
 
 #endif
