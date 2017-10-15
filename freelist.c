@@ -9,12 +9,12 @@
 /**
  * Prints the list of blocks in the free list
  */
-void print_blocklist() {
+void print_blocklist(Block** blocks) {
   int i;
   for (i = 0; i <= MAX_INDEX; i++) {
     printf("Level %d\n", i);
     Block *b = blocks[i];
-    while (b != NULL && b->level == i) {
+    while (b != NULL) {
       print_block(b);
       b = b->next;
     }
@@ -46,8 +46,8 @@ void free_memory(Block **blocks, int length) {
 void partition_blocks(Block **blocks, int order) {
   // Start at MAX_INDEX as the split_idx
   int split_idx = MAX_INDEX + 1;
-  printf("Start split at %d for order %d\n", split_idx, order);
-  print_block(blocks[order]);
+  // printf("Start split at %d for order %d\n", split_idx, order);
+  // print_block(blocks[order]);
   while (blocks[order] == NULL && split_idx > MIN_INDEX) {
     split_idx--;
     // If there are no blocks at given level, continue
