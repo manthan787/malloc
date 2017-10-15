@@ -7,9 +7,6 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <stdio.h>
-#include "malloc.h"
-#include "free.h"
-#include "block.h"
 
 void *func() {
 	printf("Inside thread 1\n");
